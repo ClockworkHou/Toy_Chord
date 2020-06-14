@@ -23,9 +23,13 @@ public class Node {
     Node(int _port) {
         this.port = _port;
     }
+    Node(int _port, int _ID) {
+        this.port = _port;
+        this.hashID = _ID;
+    }
     private void init () {
-        Random rand = new Random();
-        hashID = HashUtil.hash(Integer.valueOf(rand.nextInt()).toString());
+        //Random rand = new Random();
+        //hashID = HashUtil.hash(Integer.valueOf(rand.nextInt()).toString());
         System.out.println("Node "+hashID.toString()+" starts successfully, port: "+port.toString());
         chordServer = new ChordServer(this.hashID,this.port,false);
         chordServer.start();
@@ -38,16 +42,19 @@ public class Node {
         this.init();
 
         Scanner sc = new Scanner(System.in);
-
-        while(true) {
+        while (true) {
 
             int op = sc.nextInt();
 
-            switch(op) {
+            switch (op) {
                 case 1: {
                     String name = sc.next();
-                    ChordClient.insert(name,this.port);
+                    ChordClient.insert(name, this.port);
                     break;
+                }
+                case -1: {
+                    ChordClient.leave(chordServer.getSuccessorPort());
+                    return;
                 }
             }
 

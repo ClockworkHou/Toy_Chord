@@ -74,8 +74,8 @@ class SuperNode extends JFrame{
             Integer y = Double.valueOf(Math.cos(angle) * RADIUS + C_Y).intValue();
             Integer xb = Double.valueOf(Math.sin(angle) * (0.80*Double.valueOf(RADIUS)) + C_X).intValue();
             Integer yb = Double.valueOf(Math.cos(angle) * (0.80*Double.valueOf(RADIUS)) + C_Y).intValue();
-            Integer xc = Double.valueOf(Math.sin(angle) * (1.3*Double.valueOf(RADIUS)) + C_X).intValue();
-            Integer yc = Double.valueOf(Math.cos(angle) * (1.3*Double.valueOf(RADIUS)) + C_Y).intValue();
+            Integer xc = Double.valueOf(Math.sin(angle) * (1.4*Double.valueOf(RADIUS)) + C_X).intValue();
+            Integer yc = Double.valueOf(Math.cos(angle) * (1.4*Double.valueOf(RADIUS)) + C_Y).intValue()-50;
             g.setColor(Color.RED);
             g.drawRect(x - 8, y - 8, 16, 16);
             g.setColor(Color.BLACK);
@@ -111,8 +111,8 @@ class SuperNode extends JFrame{
                 y = Double.valueOf(Math.cos(angle) * RADIUS + C_Y).intValue();
                 xb = Double.valueOf(Math.sin(angle) * (0.80*Double.valueOf(RADIUS)) + C_X).intValue();
                 yb = Double.valueOf(Math.cos(angle) * (0.80*Double.valueOf(RADIUS)) + C_Y).intValue();
-                xc = Double.valueOf(Math.sin(angle) * (1.3*Double.valueOf(RADIUS)) + C_X).intValue();
-                yc = Double.valueOf(Math.cos(angle) * (1.3*Double.valueOf(RADIUS)) + C_Y).intValue();
+                xc = Double.valueOf(Math.sin(angle) * (1.4*Double.valueOf(RADIUS)) + C_X).intValue();
+                yc = Double.valueOf(Math.cos(angle) * (1.4*Double.valueOf(RADIUS)) + C_Y).intValue()-50;
                 g.setColor(Color.RED);
                 g.drawRect(x - 8, y - 8, 16, 16);
                 g.setColor(Color.BLACK);
@@ -121,7 +121,6 @@ class SuperNode extends JFrame{
                 g.drawString(it.next(),xc,yc+20);
                 g.drawString(it.next(), xc,yc+40);
                 g.drawString(it.next(), xc,yc+60);
-
             };
         }
         flag = true;

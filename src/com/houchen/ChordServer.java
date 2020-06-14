@@ -105,7 +105,7 @@ public class ChordServer implements Runnable{
                             } else {
                                 Iterator<Integer> hit = fingerID.iterator();
                                 Iterator<Integer> pit = fingerPort.iterator();
-                                while(hit.hasNext()){
+                                /*while(hit.hasNext()){
                                     Integer nodePort = pit.next();
                                     if(hit.next() >= tarHashID) {
                                         List<String> sendTmp = new LinkedList<String>();
@@ -120,7 +120,10 @@ public class ChordServer implements Runnable{
                                         ChordClient.close(socketSend);
                                         break;
                                     }
-                                }
+                                }*/
+                                List<String> recurSiveRes = ChordClient.lookup(tarHashID,this.successorPort);
+                                ansID = Integer.valueOf(recurSiveRes.get(0));
+                                ansPort = Integer.valueOf(recurSiveRes.get(1));
                             }
                             bufferedWriter.write(ansID.toString()+"\n");
                             bufferedWriter.write(ansPort.toString()+"\n");
@@ -163,6 +166,12 @@ public class ChordServer implements Runnable{
                             this.predecessorPort = nodePort;
                             bufferedWriter.write(rollBackpreID+"\n");
                             bufferedWriter.write(rollBackprePort+"\n");
+                            Set<Integer> checkSet = this.data.keySet();
+                            for(Integer key : checkSet) {
+                                if(key <= nodeHashID) {
+                                    bufferedWriter.write(key+" "+this.data.get(key)+"\n");
+                                }
+                            }
                             bufferedWriter.write("END\n");
                             bufferedWriter.flush();
 
@@ -174,6 +183,11 @@ public class ChordServer implements Runnable{
                                 this.predecessorPort = rollBackprePort;
                             } else {
                                 this.updateFinger(false);
+                                for(Integer key : checkSet) {
+                                    if(key <= nodeHashID) {
+                                        this.data.remove(key);
+                                    }
+                                }
                             }
                             joinLock.unlock();
                             break;
@@ -187,7 +201,19 @@ public class ChordServer implements Runnable{
                             if(this.predecessorID != this.hashID && this.preprePort == this.preprePort) {
                                 this.preprePort = nodePort;
                             }
+                            Set<Integer> checkSet = this.backup.keySet();
                             bufferedWriter.write(this.predecessorPort+"\n");
+                            for(Integer key : checkSet) {
+                                if(key > nodeHashID) {
+                                    bufferedWriter.write( key+" "+this.backup.get(key)+"\n");
+                                    this.backup.remove(key);
+                                }
+                            }
+                            while(msgIt.hasNext()) {
+                                String newData = msgIt.next();
+                                String[] datapair = newData.split(" ");
+                                this.backup.put(Integer.valueOf(datapair[0]),datapair[1]);
+                            }
                             joinSucLock.unlock();
                             break;
                         }
@@ -205,6 +231,46 @@ public class ChordServer implements Runnable{
                             break;
                         }
                         case "leave": {
+                            joinSucLock.lock();
+                            joinLock.lock();
+
+                            Socket socketUpdateSucc = ChordClient.connect(this.preprePort);
+                            List<String> sendPackage = new LinkedList<>();
+                            sendPackage.add("newSuccessor");
+                            sendPackage.add(this.hashID.toString());
+                            sendPackage.add(this.port.toString());
+                            for(Integer key:this.data.keySet()) {
+                                String content = this.data.get(key);
+                                sendPackage.add(key+" "+content);
+                            }
+                            ChordClient.send(socketUpdateSucc,sendPackage);
+                            List<String> rspnUpdateSucc = ChordClient.receive(socketUpdateSucc);
+                            Integer newPrePre = Integer.valueOf(rspnUpdateSucc.get(0));
+                            socketUpdateSucc.close();
+
+                            Socket socketGetall = ChordClient.connect(this.preprePort);
+                            sendPackage.clear();
+                            sendPackage.add("getAll");
+                            ChordClient.send(socketGetall,sendPackage);
+                            List<String> rspnGetall = ChordClient.receive(socketGetall);
+                            socketGetall.close();
+
+                            this.predecessorPort = this.preprePort;
+                            this.predecessorID = Integer.valueOf(rspnGetall.get(0));
+                            this.preprePort = newPrePre;
+
+                            String tmp = rspnGetall.get(7);
+                            String[] updateDate = tmp.substring(1,tmp.length()-1).split(", ");
+                            System.out.println(updateDate);
+                            for(int i = 0; i < updateDate.length; i++) {
+                                String[] cur = updateDate[i].split("=");
+                                if(!this.data.containsKey(Integer.valueOf(cur[0]))) {
+                                    this.data.put(Integer.valueOf(cur[0]),cur[1]);
+                                }
+
+                            }
+                            joinLock.unlock();
+                            joinSucLock.unlock();
                             break;
                         }
                         default: bufferedWriter.write("END\n");
@@ -257,6 +323,11 @@ public class ChordServer implements Runnable{
         } else {
             Integer preID = Integer.valueOf(rspnIt.next());
             Integer prePort = Integer.valueOf(rspnIt.next());
+            while(rspnIt.hasNext()) {
+                String data = rspnIt.next();
+                String[] datapair = data.split(" ");
+                this.data.put(Integer.valueOf(datapair[0]),datapair[1]);
+            }
             Socket socketPre = ChordClient.connect(prePort);
             sendPackage.clear();
             sendPackage.add("newSuccessor");
@@ -272,6 +343,11 @@ public class ChordServer implements Runnable{
             this.predecessorPort = prePort;
             this.successorID = newSuccessorID;
             this.successorPort = newSuccessorPort;
+            while(rspnIt.hasNext()) {
+                String data = rspnIt.next();
+                String[] datapair = data.split(" ");
+                this.backup.put(Integer.valueOf(datapair[0]),datapair[1]);
+            }
             this.updateFinger(false);
             sendPackage.clear();
             sendPackage.add("OK");
@@ -286,7 +362,7 @@ public class ChordServer implements Runnable{
         //Iterator<Integer> fingerPortIt = fingerPort.iterator();
         for(int i = 0; i < 13; i++) {
             Integer tmpID = (this.hashID + Integer.valueOf(1<<i))%(1<<13);
-            if(tmpID <= this.successorID) {
+            if(tmpID <= this.successorID && (tmpID > this.hashID||this.hashID==8191)) {
                 fingerID.set(i, this.successorID);
                 fingerPort.set(i, this.successorPort);
             } else if (global){

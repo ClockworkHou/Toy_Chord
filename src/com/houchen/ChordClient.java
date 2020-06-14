@@ -97,4 +97,12 @@ public class ChordClient {
         ChordClient.close(socketLookUp);
     }
 
+    static void leave(Integer port) {
+        List<String> sendPackage = new LinkedList<>();
+        sendPackage.add("leave");
+        Socket socketLookUp = ChordClient.connect(port);
+        ChordClient.send(socketLookUp,sendPackage);
+        ChordClient.close(socketLookUp);
+    }
+
 }

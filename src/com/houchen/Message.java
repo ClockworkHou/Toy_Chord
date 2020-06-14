@@ -25,6 +25,7 @@ port
 Accept
 preID
 prePort
+data
 ----------
 Reject
 ----------
@@ -37,10 +38,11 @@ newSuccessor
 ----------
 hashID
 port
-data(ID-content)
+data
 ----------
 Accept
 prepre
+data
 ----------
 Reject
 ----------

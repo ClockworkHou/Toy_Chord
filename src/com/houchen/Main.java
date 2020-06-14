@@ -1,6 +1,7 @@
 package com.houchen;
 
 import java.lang.System;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Main {
@@ -9,6 +10,8 @@ public class Main {
 
         boolean superNode = false;
         //superNode = true;
+        int id = 4500;
+        int port = 1114;
 
         if (superNode) {
             SuperNode node = new SuperNode();
@@ -25,7 +28,9 @@ public class Main {
 
         }
         else {
-            Node node = new Node(1111);
+            Random rand = new Random();
+            int newID = rand.nextInt(100)+id;
+            Node node = new Node(port,newID);
             node.start();
         }
 
